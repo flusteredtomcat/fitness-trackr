@@ -1,13 +1,14 @@
+import axios from "axios";
+
 const API = import.meta.env.VITE_API;
 
 /** Fetches an array of activities from the API. */
 export async function getActivities() {
   try {
-    const response = await fetch(API + "/activities");
-    const result = await response.json();
-    return result;
-  } catch (e) {
-    console.error(e);
+    const response = await axios.get(API + "/activities");
+    return response.data;
+  } catch (error) {
+    console.error(error);
     return [];
   }
 }
@@ -21,17 +22,25 @@ export async function createActivity(token, activity) {
     throw Error("You must be signed in to create an activity.");
   }
 
-  const response = await fetch(API + "/activities", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(activity),
-  });
+  try {
+    await axios.post(API + "/activities", activity, {
+      headers: { Authorization: "Bearer " + token },
+    });
+  } catch (error) {
+    throw Error(error.response.data.message);
+  }
+}
 
-  if (!response.ok) {
-    const result = await response.json();
-    throw Error(result.message);
+export async function deleteActivity(token, id) {
+  if (!token) {
+    throw Error("You must be signed in to delete an activity.");
+  }
+
+  try {
+    await axios.delete(API + "/activities/" + id, {
+      headers: { Authorization: "Bearer " + token },
+    });
+  } catch (error) {
+    throw Error(error.response.data.message);
   }
 }
